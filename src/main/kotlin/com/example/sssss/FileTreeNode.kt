@@ -7,6 +7,8 @@ class FileTreeNode : CheckedTreeNode {
 
     var compressedImageFile: File? = null
 
+    val path = null
+
     var error: Throwable? = null
 
     constructor()

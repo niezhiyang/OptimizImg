@@ -11,26 +11,28 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+import static com.example.sssss.FileUtils.*;
+
 public class TinyPng {
 
     private static OkHttpClient sOkHttpClient = initOkHttpClient();
 
     private static OkHttpClient initOkHttpClient() {
         final TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                }
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                    }
 
-                @Override
-                public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                }
+                    @Override
+                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                    }
 
-                @Override
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return new java.security.cert.X509Certificate[]{};
+                    @Override
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return new java.security.cert.X509Certificate[]{};
+                    }
                 }
-            }
         };
         SSLSocketFactory sslSocketFactory = null;
         try {
@@ -43,9 +45,9 @@ public class TinyPng {
         }
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .connectTimeout(60, TimeUnit.SECONDS);
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS);
         if (sslSocketFactory != null) {
             builder.sslSocketFactory(sslSocketFactory, getX509TrustManager());
             builder.hostnameVerifier(getHostnameVerifier());
@@ -86,8 +88,8 @@ public class TinyPng {
         head.put("origin", "https://tinypng.com");
         head.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36");
         Request.Builder requestBuilder = new Request.Builder()
-            .url("https://tinypng.com/backend/opt/shrink")
-            .post(RequestBody.create(MediaType.parse(type), sourceFile));
+                .url("https://tinypng.com/backend/opt/shrink")
+                .post(RequestBody.create(MediaType.parse(type), sourceFile));
 //        if (FileUtils.getConfig().getTinyHeadName() != null
 //            && FileUtils.getConfig().getTinyHeadValue() != null
 //            && (FileUtils.getConfig().getTinyHeadName().size() == FileUtils.getConfig().getTinyHeadValue().size())) {
@@ -107,12 +109,23 @@ public class TinyPng {
         response.body().close();
         InputStream inputStream = sOkHttpClient.newCall(new Request.Builder().get().url(uploadInfo.getOutput().getUrl()).build()).execute().body().byteStream();
         final String fileName = MD5Utils.getMD5(uploadInfo.getOutput().getUrl());
-        final File tmpfile = new File(FileUtils.sCodelocatorImageFileDirPath, parent + File.separator + fileName + "." + fileType + ".tmp");
-        System.out.println("parent = > "+parent + " ---- tmpfile=>"+tmpfile.getAbsolutePath()+" ----sourceFile = > "+sourceFile.getAbsolutePath());
+        final File tmpfile = new File(sCodelocatorImageFileDirPath, parent + File.separator + fileName + "." + fileType + ".tmp");
+        System.out.println("parent = > " + parent +
+                "\n tmpfile=>" + tmpfile.getAbsolutePath() +
+                "\n sourceFile = > " + sourceFile.getAbsolutePath() +
+                "\n sCodeLocatorPluginDir => " + sCodeLocatorPluginDir +
+                "\n sCodeLocatorMainDirPath=>" + sCodeLocatorMainDirPath +
+                "\n sCodelocatorImageFileDirPath=>" + sCodelocatorImageFileDirPath);
         saveToFile(tmpfile.getAbsolutePath(), inputStream);
-        final File convertedFile = new File(FileUtils.sCodelocatorImageFileDirPath, parent + File.separator + fileName + "." + fileType);
+        final File convertedFile = new File(sCodelocatorImageFileDirPath, parent + File.separator + fileName + "." + fileType);
         tmpfile.renameTo(convertedFile);
-        uploadInfo.getOutput().setFile(convertedFile);
+        File fileWebp = ConvertWebpUtil.securityFormatWebp(convertedFile);
+        if (fileWebp != null && fileWebp.exists()) {
+            uploadInfo.getOutput().setFile(fileWebp);
+            uploadInfo.getOutput().setFilePng(convertedFile);
+        } else {
+            uploadInfo.getOutput().setFile(convertedFile);
+        }
         return uploadInfo;
     }
 

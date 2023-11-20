@@ -19,6 +19,9 @@ class OutputInfo {
     @Transient
     var file: File? = null
 
+    @Transient
+    var filePng: File? = null
+
     override fun toString(): String {
         return "OutputBean{" +
             "size=" + size +

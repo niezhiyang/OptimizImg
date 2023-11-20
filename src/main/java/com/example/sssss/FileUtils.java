@@ -18,6 +18,7 @@ public class FileUtils {
     public static final String CHARSET_NAME = "UTF-8";
     public static String sCodelocatorImageFileDirPath;
     public static String sCodeLocatorPluginDir;
+    public static String sCodeLocatorMctoolsPath;
     public static String sCodeLocatorMainDirPath;
     public static String sCodelocatorTmpFileDirPath;
     public static String sCodelocatorHistoryFileDirPath;
@@ -47,6 +48,7 @@ public class FileUtils {
         }
         return result;
     }
+
     public static byte[] getFileContentBytes(File file) {
         if (!file.exists() || file.isDirectory()) {
             return null;
@@ -62,6 +64,7 @@ public class FileUtils {
         }
         return null;
     }
+
     public static void deleteChildFile(String filePath) {
         deleteChildFile(new File(filePath));
     }
@@ -90,9 +93,11 @@ public class FileUtils {
             file.delete();
         }
     }
+
     public static void init() {
         initCodeLocatorDir();
     }
+
     public static String getFileContent(File file) {
         try {
             final byte[] fileContentBytes = getFileContentBytes(file);
@@ -104,6 +109,7 @@ public class FileUtils {
         }
         return "";
     }
+
     public static File findFileByName(File root, String findFileName, int maxLevel, Comparator<File> fileComparator) {
         return findFileByName(root, findFileName, maxLevel, 0, fileComparator);
     }
@@ -135,6 +141,7 @@ public class FileUtils {
         }
         return null;
     }
+
     public static void saveImageToFile(Image image, File file) {
         try {
             if (image == null) {
@@ -152,6 +159,7 @@ public class FileUtils {
             Log.e("保存图片失败", e);
         }
     }
+
     public static boolean canOpenFile(File file) {
         if (file == null || !file.exists() || file.getName() == null || file.isDirectory()) {
             return false;
@@ -167,6 +175,7 @@ public class FileUtils {
         }
         return false;
     }
+
     @NotNull
     public static ByteArrayOutputStream readByteArrayOutputStream(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream;
@@ -189,7 +198,9 @@ public class FileUtils {
         }
         return byteArrayOutputStream;
     }
+
     public static String sUserDesktopPath;
+
     private static void initCodeLocatorDir() {
         final String userHomePath = System.getProperty("user.home");
         sUserDesktopPath = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath();
@@ -199,9 +210,17 @@ public class FileUtils {
         initImageFileDir();
         deleteChildFile(sCodelocatorImageFileDirPath);
         deleteChildFile(sCodelocatorTmpFileDirPath);
+        initTool();
     }
+
+    private static void initTool() {
+        File copy = new File(sCodeLocatorMainDirPath, "mctools");
+        sCodeLocatorMctoolsPath = copy.getAbsolutePath()+"/";
+    }
+
     private static void initMainFileDir(String userHomePath) {
         final File file = new File(userHomePath, ".codeLocator_main");
+
         sCodeLocatorMainDirPath = file.getPath();
         if (!file.exists()) {
             final boolean mkdirs = file.mkdirs();
@@ -213,6 +232,7 @@ public class FileUtils {
             file.mkdirs();
         }
     }
+
     private static void initTmpFileDir() {
         final File file = new File(sCodeLocatorMainDirPath, "tempFile");
         sCodelocatorTmpFileDirPath = file.getPath();
@@ -223,6 +243,7 @@ public class FileUtils {
             file.mkdirs();
         }
     }
+
     private static void initHistoryFileDir() {
         final File file = new File(sCodeLocatorMainDirPath, "historyFile");
         sCodelocatorHistoryFileDirPath = file.getPath();
@@ -233,6 +254,7 @@ public class FileUtils {
             file.mkdirs();
         }
     }
+
     private static void initImageFileDir() {
         final File file = new File(sCodeLocatorMainDirPath, "image");
         sCodelocatorImageFileDirPath = file.getPath();
@@ -244,4 +266,53 @@ public class FileUtils {
         }
     }
 
+    private static boolean copyAssetFolder(File fromAssetPath, String toPath) {
+        try {
+            String[] files = fromAssetPath.list();
+            new File(toPath).mkdirs();
+            boolean res = true;
+            for (String file : files)
+                if (file.contains("."))
+                    res &= copyAsset(
+                            fromAssetPath + "/" + file,
+                            toPath + "/" + file);
+                else
+                    res &= copyAssetFolder(
+                            new File(fromAssetPath + "/" + file),
+                            toPath + "/" + file);
+            return res;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static boolean copyAsset(
+            String fromAssetPath, String toPath) {
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = new FileInputStream(fromAssetPath);
+            new File(toPath).createNewFile();
+            out = new FileOutputStream(toPath);
+            copyFile(in, out);
+            in.close();
+            in = null;
+            out.flush();
+            out.close();
+            out = null;
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static void copyFile(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[1024];
+        int read;
+        while ((read = in.read(buffer)) != -1) {
+            out.write(buffer, 0, read);
+        }
+    }
 }
