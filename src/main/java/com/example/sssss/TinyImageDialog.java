@@ -90,7 +90,7 @@ public class TinyImageDialog extends JDialog {
         this.mProcessKey = (processKey == null ? getProjectImageStoreKey(project) : processKey);
         mCompressedFileMap = compressMap;
 
-        setTitle("JiDU TinyPng压缩图片");
+        setTitle("TinyPng压缩图片");
         setContentPane(mContentPanel);
         getRootPane().setDefaultButton(mBtnProcess);
 
