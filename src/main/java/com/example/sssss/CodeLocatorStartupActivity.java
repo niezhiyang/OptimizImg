@@ -66,7 +66,7 @@ public class CodeLocatorStartupActivity implements StartupActivity {
                     dialog.setAlwaysOnTop(false);
                 } else {
                     ProgressManager.getInstance()
-                            .run(new Task.Backgroundable(project, "集度 TinyPng 压缩中...", true) {
+                            .run(new Task.Backgroundable(project, "TinyPng 压缩中...", true) {
 
                                 private HashMap<VirtualFile, File> compressMap = new HashMap<>();
 
@@ -94,7 +94,7 @@ public class CodeLocatorStartupActivity implements StartupActivity {
                                             if (indicator.isCanceled()) {
                                                 return;
                                             }
-                                            indicator.setText("集度 TinyPng 压缩中... " + f.getName());
+                                            indicator.setText("TinyPng 压缩中... " + f.getName());
                                             final UploadInfo uploadInfo = TinyPng.tinifyFile(projectImageStoreKey, new File(f.getPath()));
                                             final File file = uploadInfo.getOutput().getFile();
                                             if (file != null) {
